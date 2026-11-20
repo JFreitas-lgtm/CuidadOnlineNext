@@ -1,0 +1,5 @@
+import { notFound } from "next/navigation";
+import { getLesson } from "@/lib/content";
+import { LessonActions } from "@/components/lesson-actions";
+export const dynamic = "force-dynamic";
+export default async function LessonPage({ params }: { params:Promise<{slug:string}> }) { const lesson = await getLesson((await params).slug); if (!lesson) notFound(); const text = `${lesson.title}\n\n${lesson.tips.map((tip,i)=>`${i+1}. ${tip}`).join("\n")}`; return <article className="container-page py-12"><div className="panel mx-auto max-w-3xl overflow-hidden"><div className="h-3" style={{background:lesson.color}}/><div className="p-6 md:p-10"><p className="eyebrow">Leitura educativa</p><h1 className="mt-3 text-3xl font-black">{lesson.title}</h1><p className="mt-5 text-lg leading-8">{lesson.intro}</p><h2 className="mt-8 text-xl font-black">O que fazer</h2><ol className="prose-safe mt-3 list-decimal pl-6">{lesson.tips.map(tip=><li key={tip}>{tip}</li>)}</ol><LessonActions slug={lesson.slug} title={lesson.title} shareText={text}/></div></div></article>; }

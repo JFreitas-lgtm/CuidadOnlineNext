@@ -1,0 +1,1 @@
+export default function AdminLoading(){return <div className="container-page py-12"><div className="h-64 animate-pulse rounded-2xl bg-emerald-100" role="status"><span className="sr-only">Carregando administração</span></div></div>}

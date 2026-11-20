@@ -1,0 +1,3 @@
+import type { Metadata } from "next"; import { getLessons } from "@/lib/content"; import { LessonBrowser } from "@/components/lesson-browser";
+export const dynamic = "force-dynamic"; export const metadata: Metadata = { title: "Aprender" };
+export default async function LearnPage() { const lessons = await getLessons(); return <div className="container-page py-12"><p className="eyebrow">Biblioteca educativa</p><h1 className="mt-3 text-3xl font-black md:text-4xl">Aprender a se proteger</h1><p className="muted mb-8 mt-3 max-w-2xl">Escolha um assunto. As explicações são diretas e você pode voltar quantas vezes quiser.</p><LessonBrowser lessons={lessons}/></div>; }

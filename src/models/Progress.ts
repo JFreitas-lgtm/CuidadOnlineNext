@@ -1,0 +1,10 @@
+import { Schema, model, models } from "mongoose";
+const lessonStateSchema = new Schema({ slug: String, visitedAt: Date, completedAt: Date, favorite: { type: Boolean, default: false } }, { _id: false });
+const progressSchema = new Schema({ userId: { type: Schema.Types.ObjectId, required: true, unique: true, index: true, ref: "User" }, lessons: [lessonStateSchema], lastLesson: String }, { timestamps: true });
+const quizAttemptSchema = new Schema({ userId: { type: Schema.Types.ObjectId, required: true, index: true, ref: "User" }, score: Number, total: Number, answers: [Schema.Types.Mixed] }, { timestamps: true });
+const simulationAttemptSchema = new Schema({ userId: { type: Schema.Types.ObjectId, required: true, index: true, ref: "User" }, simulationSlug: String, outcome: { type: String, enum: ["safe", "risk", "completed"] } }, { timestamps: true });
+const auditSchema = new Schema({ adminId: { type: Schema.Types.ObjectId, index: true }, targetUserId: { type: Schema.Types.ObjectId, index: true }, action: { type: String, index: true }, details: Schema.Types.Mixed }, { timestamps: true });
+export const ProgressModel = models.Progress ?? model("Progress", progressSchema);
+export const QuizAttemptModel = models.QuizAttempt ?? model("QuizAttempt", quizAttemptSchema);
+export const SimulationAttemptModel = models.SimulationAttempt ?? model("SimulationAttempt", simulationAttemptSchema);
+export const AuditModel = models.Audit ?? model("Audit", auditSchema);

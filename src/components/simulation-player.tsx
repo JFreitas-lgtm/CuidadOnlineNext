@@ -1,0 +1,9 @@
+"use client";
+import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import type { Simulation } from "@/types";
+type Item={label:string;explanation:string;safe?:boolean};
+export function SimulationPlayer({simulation}:{simulation:Simulation}){const items=(simulation.data.items??[]) as Item[];const [seen,setSeen]=useState<number[]>([]);const {data}=useSession();const done=items.length>0&&seen.length===items.length;async function finish(){if(data){await fetch("/api/progress/simulations",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({simulationSlug:simulation.slug,outcome:"completed"})});toast.success("Simulação salva no progresso.");}else toast.success("Prática concluída. Entre para salvar.");}return <Card className="mx-auto max-w-3xl"><p className="eyebrow">Simulação educativa · dados fictícios</p><h1 className="mt-3 text-3xl font-black">{simulation.title}</h1><p className="muted mt-3">{simulation.description}</p><p className="mt-7 font-bold">Explore cada ponto antes de concluir:</p><div className="mt-4 grid gap-3">{items.map((item,i)=><button key={item.label} className={`rounded-xl border p-4 text-left transition ${seen.includes(i)?"border-emerald-500 bg-emerald-50":"border-slate-200 bg-white hover:border-emerald-300"}`} onClick={()=>setSeen([...new Set([...seen,i])])} aria-pressed={seen.includes(i)}><span className="font-bold">{seen.includes(i)?"✓ ":""}{item.label}</span>{seen.includes(i)&&<span className="mt-2 block leading-7 text-slate-700">{item.explanation}</span>}</button>)}</div><p className="muted mt-4" role="status">{seen.length} de {items.length} pontos explorados</p><Button className="mt-5 w-full" disabled={!done} onClick={finish}>Concluir simulação</Button></Card>}

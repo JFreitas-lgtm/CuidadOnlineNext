@@ -1,0 +1,1 @@
+export default function LessonLoading() { return <div className="container-page py-12"><div className="panel mx-auto h-96 max-w-3xl animate-pulse bg-emerald-50" role="status"><span className="sr-only">Carregando aula</span></div></div>; }

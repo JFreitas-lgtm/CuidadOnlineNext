@@ -1,0 +1,1 @@
+import {AccountPanel} from "@/components/account-panel";export default function AccountPage(){return <div className="container-page py-12"><p className="eyebrow">Configurações</p><h1 className="mb-8 mt-3 text-3xl font-black">Minha conta</h1><AccountPanel/></div>}

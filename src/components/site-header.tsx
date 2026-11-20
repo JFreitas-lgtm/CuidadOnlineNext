@@ -1,0 +1,8 @@
+"use client";
+import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
+import { Menu, ShieldCheck } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+const links = [["/aprender", "Aprender"], ["/praticar", "Praticar"], ["/simulacoes", "Simulações"], ["/ajuda", "Ajuda"]] as const;
+export function SiteHeader() { const { data } = useSession(); const [open, setOpen] = useState(false); return <header className="sticky top-0 z-40 border-b border-emerald-100 bg-white/95 backdrop-blur"><div className="container-page flex min-h-18 items-center justify-between gap-4"><Link href="/" className="flex items-center gap-2 text-lg font-black text-emerald-900"><ShieldCheck className="text-emerald-700" aria-hidden />CuidadOnline</Link><button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Abrir menu" aria-expanded={open}><Menu /></button><nav aria-label="Navegação principal" className={`${open ? "flex" : "hidden"} absolute left-0 right-0 top-18 flex-col gap-2 border-b bg-white p-4 md:static md:flex md:flex-row md:items-center md:border-0 md:p-0`}>{links.map(([href,label]) => <Link key={href} className="rounded-lg px-3 py-2 font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800" href={href}>{label}</Link>)}{data?.user && <><Link className="rounded-lg px-3 py-2 font-semibold" href="/progresso">Progresso</Link>{data.user.role === "admin" && <Link className="rounded-lg px-3 py-2 font-semibold" href="/admin">Administração</Link>}<Button variant="ghost" onClick={() => signOut({ callbackUrl: "/" })}>Sair</Button></>}{!data?.user && <Button asChild><Link href="/entrar">Entrar</Link></Button>}</nav></div></header>; }
