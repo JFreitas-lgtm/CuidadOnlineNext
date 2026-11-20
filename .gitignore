@@ -1,0 +1,51 @@
+# Dependências locais (o site atual não exige instalação)
+node_modules/
+
+# Build, cobertura e relatórios de testes
+dist/
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Caches e arquivos temporários
+.cache/
+.npm/
+.tmp/
+tmp/
+*.log
+*.tmp
+*.bak
+*.orig
+*.orig.*
+*.swp
+*.swo
+
+# Segredos e configurações locais
+.env
+.env.*
+!.env.example
+!.env.*.example
+.npmrc
+credentials.json
+secrets/
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Configurações pessoais de editores e assistentes
+.vscode/
+.idea/
+.codex/
+.agents/
+.claude/
+CLAUDE.md
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+Desktop.ini

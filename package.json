@@ -1,0 +1,29 @@
+{
+  "name": "cuidadonline",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Educação contra golpes digitais em HTML, CSS e JavaScript.",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server/index.mjs",
+    "dev": "node --watch --env-file-if-exists=.env server/index.mjs",
+    "web": "node --env-file-if-exists=.env server/index.mjs",
+    "build": "node scripts/build.mjs",
+    "preview": "node --env-file-if-exists=.env server/index.mjs dist",
+    "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs",
+    "db:seed-admin": "node --env-file-if-exists=.env scripts/seed-admin.mjs",
+    "test": "node --test",
+    "test:integration": "node --test tests/integration/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "dependencies": {
+    "connect-pg-simple": "^10.0.0",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.4",
+    "express-session": "^1.19.0",
+    "helmet": "^8.3.0",
+    "pg": "^8.23.1"
+  }
+}
