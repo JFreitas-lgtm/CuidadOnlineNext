@@ -5,7 +5,12 @@ import { connectDB } from "@/lib/db";
 import { credentialsSchema } from "@/lib/validation";
 import { UserModel } from "@/models/User";
 
+const authSecret = process.env.AUTH_SECRET ?? (process.env.NODE_ENV === "development"
+  ? "cuidadonline-local-development-secret-change-in-production"
+  : undefined);
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: authSecret,
   session: { strategy: "jwt", maxAge: 60 * 60 * 8 },
   pages: { signIn: "/entrar" },
   providers: [Credentials({

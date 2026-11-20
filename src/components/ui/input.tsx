@@ -1,3 +1,3 @@
 import type { InputHTMLAttributes, TextareaHTMLAttributes } from "react"; import { cn } from "@/lib/utils";
-export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) { return <input className={cn("min-h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-slate-900 placeholder:text-slate-400", className)} {...props} />; }
-export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) { return <textarea className={cn("w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900", className)} {...props} />; }
+export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) { return <input className={cn("min-h-12 w-full rounded-[10px] border border-[#dce3ed] bg-white px-4 text-[#172b4d] placeholder:text-[#61718a]", className)} {...props} />; }
+export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) { return <textarea className={cn("w-full rounded-[10px] border border-[#dce3ed] bg-white px-4 py-3 text-[#172b4d]", className)} {...props} />; }
