@@ -50,6 +50,7 @@ export interface Progress {
   quizAttempts: number;
   simulationAttempts: number;
   bestQuiz: { score: number; total: number } | null;
+  quizResume: { currentIndex: number; score: number; total: number; answers: Array<boolean | "unsure"> } | null;
 }
 
 export interface ApiError { error: { code: string; message: string; fields?: Record<string, string[]> } }

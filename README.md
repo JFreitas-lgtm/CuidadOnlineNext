@@ -33,15 +33,20 @@ npm install
 Copy-Item .env.example .env.local
 ```
 
-Preencha `.env.local`:
+O arquivo `.env.local` já fica ignorado pelo Git. Para iniciar sem administrador,
+basta colar a URI obtida em **Atlas > Connect > Drivers**:
 
 ```env
-MONGODB_URI=mongodb+srv://USUARIO:SENHA@cluster.mongodb.net/cuidadonline
-AUTH_SECRET=uma-chave-aleatoria-com-pelo-menos-32-caracteres
-ADMIN_NAME=Administrador
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=uma-senha-forte
+MONGODB_URI=mongodb+srv://USUARIO:SENHA@HOST/cuidadonline?retryWrites=true&w=majority
 ```
+
+Se o resolvedor local recusar a consulta SRV do Atlas, defina opcionalmente
+`MONGODB_DNS_SERVERS=8.8.8.8,1.1.1.1`. Essa configuração não é necessária na Vercel.
+
+Substitua `<db_password>` na URI copiada pelo Atlas. Se quiser criar o administrador
+no mesmo seed, preencha também `ADMIN_NAME`, `ADMIN_EMAIL` e `ADMIN_PASSWORD`.
+`AUTH_SECRET` é obrigatório no deploy, mas o desenvolvimento local possui um fallback
+que nunca é usado em produção.
 
 Prepare os dados e inicie:
 

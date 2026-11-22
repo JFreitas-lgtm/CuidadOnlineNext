@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, type FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -7,4 +8,51 @@ import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-export function AuthForm({register=false}:{register?:boolean}){const router=useRouter();const [error,setError]=useState("");const [busy,setBusy]=useState(false);async function submit(event:FormEvent<HTMLFormElement>){event.preventDefault();setBusy(true);setError("");const data=Object.fromEntries(new FormData(event.currentTarget));try{if(register){const r=await fetch("/api/register",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(data)});if(!r.ok){const body=await r.json();throw new Error(body.error?.message)}}const result=await signIn("credentials",{email:data.email,password:data.password,redirect:false});if(result?.error)throw new Error("E-mail ou senha incorretos.");router.push("/progresso");router.refresh()}catch(e){setError(e instanceof Error?e.message:"Não foi possível continuar.")}finally{setBusy(false)}}return <div className="auth-screen"><aside className="auth-story"><Link href="/" className="flex items-center gap-3 text-white no-underline"><span className="grid h-10 w-9 place-items-center rounded-xl bg-white/15"><ShieldCheck size={21}/></span><span className="text-xl font-extrabold tracking-[-.9px]">CuidadOnline</span></Link><h2>A internet pode ser um lugar mais seguro.</h2><p>Aprenda a reconhecer golpes e cuide do que é importante para você. Um passo de cada vez.</p><Image src="/brand-shield.svg" width={560} height={420} priority alt="Escudo de proteção digital"/></aside><section className="auth-main"><form onSubmit={submit} className="auth-card"><p className="eyebrow">{register?"Nova conta":"Bem-vindo de volta"}</p><h1 className="mt-3 text-[2rem] font-extrabold tracking-[-1px]">{register?"Crie sua conta":"Entre no CuidadOnline"}</h1><p className="muted mt-2">{register?"Comece sua jornada com mais segurança.":"Continue aprendendo de onde parou."}</p>{register&&<label className="mt-6 block font-semibold">Nome<Input name="name" required minLength={2} maxLength={120} autoComplete="name" className="mt-2"/></label>}<label className="mt-5 block font-semibold">E-mail<Input name="email" required type="email" autoComplete="email" className="mt-2"/></label><label className="mt-5 block font-semibold">Senha<Input name="password" required type="password" minLength={8} autoComplete={register?"new-password":"current-password"} className="mt-2"/></label>{error&&<p className="mt-4 rounded-[10px] bg-[#fff0f0] p-3 text-[#a12626]" role="alert">{error}</p>}<Button className="mt-6 w-full" disabled={busy}>{busy?"Aguarde...":register?"Criar conta":"Entrar"}</Button><Button asChild variant="secondary" className="mt-3 w-full"><Link href="/">Continuar como visitante</Link></Button><p className="muted mt-5 text-center">{register?"Já tem conta? ":"Ainda não tem conta? "}<Link className="font-semibold underline" href={register?"/entrar":"/cadastro"}>{register?"Entrar":"Criar agora"}</Link></p></form></section></div>}
+
+export function AuthForm({ register = false }: { register?: boolean }) {
+  const router = useRouter();
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    const data = Object.fromEntries(new FormData(event.currentTarget));
+    try {
+      if (register) {
+        const response = await fetch("/api/register", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(data) });
+        if (!response.ok) { const body = await response.json(); throw new Error(body.error?.message); }
+      }
+      const result = await signIn("credentials", { email: data.email, password: data.password, redirect: false });
+      if (result?.error) throw new Error("E-mail ou senha incorretos.");
+      router.replace("/progresso");
+      router.refresh();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Não foi possível continuar.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <div className="auth-screen">
+    <aside className="auth-story">
+      <Link href="/inicio" replace className="flex items-center gap-3 text-white no-underline"><span className="grid h-10 w-9 place-items-center rounded-xl bg-white/15"><ShieldCheck size={21}/></span><span className="text-xl font-extrabold tracking-[-.9px]">CuidadOnline</span></Link>
+      <h2>A internet pode ser um lugar mais seguro.</h2><p>Aprenda a reconhecer golpes e cuide do que é importante para você. Um passo de cada vez.</p><Image src="/brand-shield.svg" width={560} height={420} priority alt="Escudo de proteção digital"/>
+    </aside>
+    <section className="auth-main">
+      <form onSubmit={submit} className="auth-card">
+        <p className="eyebrow">{register ? "Nova conta" : "Bem-vindo de volta"}</p>
+        <h1 className="mt-3 text-[2rem] font-extrabold tracking-[-1px]">{register ? "Crie sua conta" : "Entre no CuidadOnline"}</h1>
+        <p className="muted mt-2">{register ? "Comece sua jornada com mais segurança." : "Continue aprendendo de onde parou."}</p>
+        {register && <label className="mt-6 block font-semibold">Nome<Input name="name" required minLength={2} maxLength={120} autoComplete="name" className="mt-2"/></label>}
+        <label className="mt-5 block font-semibold">E-mail<Input name="email" required type="email" autoComplete="email" className="mt-2"/></label>
+        <label className="mt-5 block font-semibold">Senha<Input name="password" required type="password" minLength={8} autoComplete={register ? "new-password" : "current-password"} className="mt-2"/></label>
+        {error && <p className="mt-4 rounded-[10px] bg-[#fff0f0] p-3 text-[#a12626]" role="alert">{error}</p>}
+        <Button className="mt-6 w-full" disabled={busy}>{busy ? "Aguarde..." : register ? "Criar conta" : "Entrar"}</Button>
+        <Button asChild variant="secondary" className="mt-3 w-full"><Link href="/inicio" replace>Continuar como visitante</Link></Button>
+        <p className="muted mt-5 text-center">{register ? "Já tem conta? " : "Ainda não tem conta? "}<Link className="font-semibold underline" href={register ? "/entrar" : "/cadastro"}>{register ? "Entrar" : "Criar agora"}</Link></p>
+      </form>
+    </section>
+  </div>;
+}

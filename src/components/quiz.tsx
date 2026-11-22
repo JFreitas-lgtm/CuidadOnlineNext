@@ -1,10 +1,78 @@
 "use client";
+
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import type { QuizQuestion } from "@/types";
+import type { Progress, QuizQuestion } from "@/types";
+
 type Answer = boolean | "unsure";
-export function Quiz({ questions }: { questions:QuizQuestion[] }) { const [index,setIndex]=useState(0); const [answers,setAnswers]=useState<Answer[]>([]); const [selected,setSelected]=useState<Answer|null>(null); const {data:session}=useSession(); const qc=useQueryClient(); const finished=index>=questions.length; const score=answers.reduce((sum,a,i)=>sum+Number(a===questions[i]?.scam),0); const save=useMutation({ mutationFn:async()=>{const r=await fetch("/api/progress/quiz",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({score,total:questions.length,answers})});if(!r.ok)throw new Error();}, onSuccess:()=>{qc.invalidateQueries({queryKey:["progress"]});toast.success("Resultado salvo no seu progresso.");} }); if (!questions.length) return <Card>Nenhuma pergunta cadastrada.</Card>; if(finished)return <Card className="mx-auto max-w-2xl text-center"><p className="eyebrow">Atividade concluída</p><h2 className="mt-3 text-3xl font-black">Você acertou {score} de {questions.length}</h2><p className="muted mt-3">Revise as explicações e pratique novamente quando quiser.</p>{session&&!save.isSuccess&&<Button className="mt-6" disabled={save.isPending} onClick={()=>save.mutate()}>{save.isPending?"Salvando...":"Salvar resultado"}</Button>}<Button className="mt-6 ml-3" variant="secondary" onClick={()=>{setIndex(0);setAnswers([]);setSelected(null)}}>Praticar novamente</Button></Card>; const q=questions[index]; return <Card className="mx-auto max-w-2xl"><div className="flex items-center justify-between gap-4"><p className="eyebrow">Situação {index+1} de {questions.length}</p><span className="text-sm font-bold">{q.sender}</span></div><div className="my-6 rounded-2xl bg-slate-100 p-5 text-lg leading-8">{q.message}</div>{selected===null?<div className="grid gap-3 sm:grid-cols-2"><Button onClick={()=>setSelected(true)}>É golpe</Button><Button variant="secondary" onClick={()=>setSelected(false)}>Parece seguro</Button><Button variant="ghost" className="sm:col-span-2" onClick={()=>setSelected("unsure")}>Não tenho certeza</Button></div>:<div><div className={`rounded-xl p-4 ${selected===q.scam?"bg-emerald-50 text-emerald-950":"bg-amber-50 text-amber-950"}`} role="status"><p className="font-black">{selected===q.scam?"Isso mesmo!":"Vamos entender juntos."}</p><p className="mt-2 leading-7">{q.explanation}</p></div><Button className="mt-5 w-full" onClick={()=>{setAnswers([...answers,selected]);setSelected(null);setIndex(index+1)}}>{index+1===questions.length?"Ver resultado":"Próxima situação"}</Button></div>}</Card>; }
+type QuizProgress = { score: number; total: number; currentIndex: number; answers: Answer[]; completed: boolean };
+type Resume = Progress["quizResume"];
+
+async function loadProgress() {
+  const response = await fetch("/api/progress", { cache: "no-store" });
+  if (!response.ok) throw new Error("Não foi possível recuperar o quiz.");
+  return response.json() as Promise<Progress>;
+}
+
+export function Quiz({ questions }: { questions: QuizQuestion[] }) {
+  const { data: session, status } = useSession();
+  const progress = useQuery({ queryKey: ["progress"], queryFn: loadProgress, enabled: Boolean(session), staleTime: 0 });
+  if (!questions.length) return <Card>Nenhuma pergunta cadastrada.</Card>;
+  if (status === "loading" || (session && progress.isPending)) return <Card className="mx-auto max-w-2xl animate-pulse">Recuperando seu progresso...</Card>;
+  const resume = progress.data?.quizResume;
+  const validResume = resume && resume.total === questions.length && resume.currentIndex < questions.length ? resume : null;
+  return <QuizRunner key={validResume ? `resume-${validResume.currentIndex}` : "new"} questions={questions} initialResume={validResume} authenticated={Boolean(session)}/>;
+}
+
+function QuizRunner({ questions, initialResume, authenticated }: { questions: QuizQuestion[]; initialResume: Resume; authenticated: boolean }) {
+  const [index, setIndex] = useState(initialResume?.currentIndex ?? 0);
+  const [answers, setAnswers] = useState<Answer[]>(initialResume?.answers ?? []);
+  const [selected, setSelected] = useState<Answer | null>(null);
+  const finished = index >= questions.length;
+  const score = answers.reduce((sum, answer, answerIndex) => sum + Number(answer === questions[answerIndex]?.scam), 0);
+  const save = useMutation({
+    mutationFn: async (value: QuizProgress) => {
+      const response = await fetch("/api/progress/quiz", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(value), keepalive: true });
+      if (!response.ok) throw new Error("Não foi possível salvar o progresso do quiz.");
+      return response.json() as Promise<{ completed: boolean }>;
+    },
+    onSuccess: (result) => { if (result.completed) toast.success("Quiz concluído e salvo no seu progresso."); },
+    onError: (error) => toast.error(error.message),
+  });
+
+  if (finished) return <Card className="mx-auto max-w-2xl text-center">
+    <p className="eyebrow">Atividade concluída</p><h2 className="mt-3 text-3xl font-black">Você acertou {score} de {questions.length}</h2><p className="muted mt-3">Seu resultado foi registrado. Você pode praticar novamente quando quiser.</p>
+    {authenticated && <p className={`quiz-save-status ${save.isError ? "error" : ""}`} role="status">{save.isPending && "Salvando resultado..."}{save.isSuccess && "Quiz concluído e salvo."}{save.isError && "O salvamento falhou. Tente novamente."}</p>}
+    {authenticated && save.isError && <Button className="mt-6" onClick={() => save.mutate({ score, total: questions.length, currentIndex: questions.length, answers, completed: true })}>Tentar salvar novamente</Button>}
+    <Button className="mt-6 ml-3" variant="secondary" onClick={() => { setIndex(0); setAnswers([]); setSelected(null); save.reset(); }}>Praticar novamente</Button>
+  </Card>;
+
+  const question = questions[index];
+  const correct = selected === question.scam;
+  async function nextQuestion() {
+    if (selected === null) return;
+    const nextAnswers = [...answers, selected];
+    const nextIndex = index + 1;
+    const nextScore = nextAnswers.reduce((sum, answer, answerIndex) => sum + Number(answer === questions[answerIndex]?.scam), 0);
+    if (authenticated) {
+      try {
+        await save.mutateAsync({ score: nextScore, total: questions.length, currentIndex: nextIndex, answers: nextAnswers, completed: nextIndex === questions.length });
+      } catch {
+        return;
+      }
+    }
+    setAnswers(nextAnswers); setSelected(null); setIndex(nextIndex);
+  }
+
+  return <Card className="mx-auto max-w-2xl">
+    {initialResume && index === initialResume.currentIndex && <p className="quiz-resume-note">Continuando de onde você parou</p>}
+    <div className="flex items-center justify-between gap-4"><p className="eyebrow">Situação {index + 1} de {questions.length}</p><span className="text-sm font-bold">{question.sender}</span></div>
+    <div className="my-6 rounded-2xl bg-slate-100 p-5 text-lg leading-8">{question.message}</div>
+    {selected === null ? <div className="grid gap-3 sm:grid-cols-2"><Button onClick={() => setSelected(true)}>É golpe</Button><Button variant="secondary" onClick={() => setSelected(false)}>Parece seguro</Button><Button variant="ghost" className="sm:col-span-2" onClick={() => setSelected("unsure")}>Não tenho certeza</Button></div> : <div><div className={`quiz-feedback ${correct ? "correct" : "incorrect"}`} role="status"><p className="font-black">{correct ? "Isso mesmo!" : "Vamos entender juntos."}</p><p className="mt-2 leading-7">{question.explanation}</p></div><Button className={`quiz-next mt-5 w-full ${correct ? "correct" : "incorrect"}`} disabled={save.isPending} onClick={nextQuestion}>{save.isPending ? "Salvando progresso..." : index + 1 === questions.length ? "Concluir quiz" : "Próxima situação"}</Button></div>}
+    {authenticated && save.isError && <p className="mt-4 text-sm font-bold text-red-700">Não foi possível salvar a última resposta.</p>}
+  </Card>;
+}
