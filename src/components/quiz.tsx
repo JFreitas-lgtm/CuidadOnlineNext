@@ -53,26 +53,36 @@ function QuizRunner({ questions, initialResume, authenticated }: { questions: Qu
 
   const question = questions[index];
   const correct = selected === question.scam;
-  async function nextQuestion() {
+  function answerQuestion(answer: Answer) {
+    setSelected(answer);
+    if (!authenticated) return;
+    const nextAnswers = [...answers, answer];
+    const nextIndex = index + 1;
+    const nextScore = nextAnswers.reduce((sum, item, answerIndex) => sum + Number(item === questions[answerIndex]?.scam), 0);
+    save.mutate({ score: nextScore, total: questions.length, currentIndex: nextIndex, answers: nextAnswers, completed: nextIndex === questions.length });
+  }
+
+  function retrySave() {
     if (selected === null) return;
     const nextAnswers = [...answers, selected];
     const nextIndex = index + 1;
-    const nextScore = nextAnswers.reduce((sum, answer, answerIndex) => sum + Number(answer === questions[answerIndex]?.scam), 0);
-    if (authenticated) {
-      try {
-        await save.mutateAsync({ score: nextScore, total: questions.length, currentIndex: nextIndex, answers: nextAnswers, completed: nextIndex === questions.length });
-      } catch {
-        return;
-      }
-    }
-    setAnswers(nextAnswers); setSelected(null); setIndex(nextIndex);
+    const nextScore = nextAnswers.reduce((sum, item, answerIndex) => sum + Number(item === questions[answerIndex]?.scam), 0);
+    save.mutate({ score: nextScore, total: questions.length, currentIndex: nextIndex, answers: nextAnswers, completed: nextIndex === questions.length });
+  }
+
+  function nextQuestion() {
+    if (selected === null) return;
+    if (authenticated && !save.isSuccess) return;
+    const nextAnswers = [...answers, selected];
+    const nextIndex = index + 1;
+    setAnswers(nextAnswers); setSelected(null); setIndex(nextIndex); if (nextIndex < questions.length) save.reset();
   }
 
   return <Card className="mx-auto max-w-2xl">
     {initialResume && index === initialResume.currentIndex && <p className="quiz-resume-note">Continuando de onde você parou</p>}
     <div className="flex items-center justify-between gap-4"><p className="eyebrow">Situação {index + 1} de {questions.length}</p><span className="text-sm font-bold">{question.sender}</span></div>
     <div className="my-6 rounded-2xl bg-slate-100 p-5 text-lg leading-8">{question.message}</div>
-    {selected === null ? <div className="grid gap-3 sm:grid-cols-2"><Button onClick={() => setSelected(true)}>É golpe</Button><Button variant="secondary" onClick={() => setSelected(false)}>Parece seguro</Button><Button variant="ghost" className="sm:col-span-2" onClick={() => setSelected("unsure")}>Não tenho certeza</Button></div> : <div><div className={`quiz-feedback ${correct ? "correct" : "incorrect"}`} role="status"><p className="font-black">{correct ? "Isso mesmo!" : "Vamos entender juntos."}</p><p className="mt-2 leading-7">{question.explanation}</p></div><Button className={`quiz-next mt-5 w-full ${correct ? "correct" : "incorrect"}`} disabled={save.isPending} onClick={nextQuestion}>{save.isPending ? "Salvando progresso..." : index + 1 === questions.length ? "Concluir quiz" : "Próxima situação"}</Button></div>}
-    {authenticated && save.isError && <p className="mt-4 text-sm font-bold text-red-700">Não foi possível salvar a última resposta.</p>}
+    {selected === null ? <div className="grid gap-3 sm:grid-cols-2"><Button onClick={() => answerQuestion(true)}>É golpe</Button><Button variant="secondary" onClick={() => answerQuestion(false)}>Parece seguro</Button><Button variant="ghost" className="sm:col-span-2" onClick={() => answerQuestion("unsure")}>Não tenho certeza</Button></div> : <div><div className={`quiz-feedback ${correct ? "correct" : "incorrect"}`} role="status"><p className="font-black">{correct ? "Isso mesmo!" : "Vamos entender juntos."}</p><p className="mt-2 leading-7">{question.explanation}</p></div><Button className={`quiz-next mt-5 w-full ${correct ? "correct" : "incorrect"}`} disabled={authenticated && !save.isSuccess} onClick={nextQuestion}>{save.isPending ? "Salvando progresso..." : index + 1 === questions.length ? "Concluir quiz" : "Próxima situação"}</Button></div>}
+    {authenticated && save.isError && <div className="mt-4"><p className="text-sm font-bold text-red-700">Não foi possível salvar a última resposta.</p><Button className="mt-3" variant="secondary" onClick={retrySave}>Tentar salvar novamente</Button></div>}
   </Card>;
 }

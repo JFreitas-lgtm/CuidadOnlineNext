@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Progress } from "@/types";
 
@@ -16,7 +17,7 @@ export function LessonActions({ slug, title, shareText }: { slug: string; title:
   const favorite = data?.favorites.includes(slug);
   const completed = data?.completed.includes(slug);
   return <div className="lesson-actions">
-    {session ? <><Button className={`lesson-favorite ${favorite ? "active" : ""}`} disabled={mutation.isPending} onClick={() => mutation.mutate({ favorite: !favorite })}>{favorite ? "Remover dos favoritos" : "Favoritar aula"}</Button><Button className="lesson-complete" disabled={mutation.isPending || completed} onClick={() => mutation.mutate({ completed: true })}>{completed ? "Aula concluída" : mutation.isPending ? "Salvando..." : "Marcar como concluída"}</Button></> : <Button asChild><a href="/entrar">Entre para salvar</a></Button>}
-    <Button className="lesson-share" onClick={async () => { if (navigator.share) await navigator.share({ title, text: shareText }); else { await navigator.clipboard.writeText(shareText); toast.success("Dicas copiadas."); } }}>Compartilhar dicas</Button>
+    {session ? <><button type="button" className={`lesson-favorite-icon ${favorite ? "active" : ""}`} aria-pressed={favorite} aria-label={favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"} title={favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"} disabled={mutation.isPending} onClick={() => mutation.mutate({ favorite: !favorite })}><Heart size={27} strokeWidth={2} fill={favorite ? "currentColor" : "none"}/></button><Button className="lesson-complete" disabled={mutation.isPending || completed} onClick={() => mutation.mutate({ completed: true })}>{completed ? "Aula concluída" : mutation.isPending ? "Salvando..." : "Marcar como concluída"}</Button></> : <Button asChild><a href="/entrar">Entre para salvar</a></Button>}
+    <Button variant="secondary" className="lesson-share" onClick={async () => { if (navigator.share) await navigator.share({ title, text: shareText }); else { await navigator.clipboard.writeText(shareText); toast.success("Dicas copiadas."); } }}>Compartilhar dicas</Button>
   </div>;
 }

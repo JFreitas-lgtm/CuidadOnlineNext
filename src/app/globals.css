@@ -129,12 +129,17 @@ a { color:var(--blue); text-underline-offset:3px; }
 :root[data-theme="dark"] .quiz-save-status.error { color:#ffc1c1; background:#451f26; }
 :root[data-theme="dark"] .quiz-resume-note { color:#a7f0c9; background:#12382c; }
 .lesson-actions { margin-top:32px; display:flex; flex-wrap:wrap; gap:12px; }
-.lesson-favorite { border:1px solid #f2c56e!important; color:#85520a!important; background:#fff4d9!important; }
-.lesson-favorite:hover,.lesson-favorite.active { color:white!important; background:#ad7423!important; }
+.lesson-favorite-icon { width:50px; min-height:50px; display:grid; place-items:center; flex:0 0 auto; border:0; border-radius:50%; color:#1554ed; background:transparent; }
+.lesson-favorite-icon:hover { color:#d33b61; background:#fff2f5; }
+.lesson-favorite-icon.active { color:#d33b61; }
+.lesson-favorite-icon:disabled { cursor:not-allowed; opacity:.55; }
 .lesson-complete { color:white!important; background:#237957!important; }
 .lesson-complete:hover { background:#1a6246!important; }
-.lesson-share { border:1px solid var(--secondary-border)!important; color:var(--blue)!important; background:var(--pale)!important; }
-:root[data-theme="dark"] .lesson-favorite { color:#ffd78a!important; background:#44300e!important; border-color:#7d5918!important; }
+.lesson-share { border:1px solid var(--secondary-border)!important; color:#1554ed!important; background:transparent!important; }
+.lesson-share:hover { color:#1046ce!important; border-color:#9bb7f7!important; background:var(--pale)!important; }
+:root[data-theme="dark"] .lesson-favorite-icon { color:#75a0ff; }
+:root[data-theme="dark"] .lesson-favorite-icon:hover,:root[data-theme="dark"] .lesson-favorite-icon.active { color:#ff8eaa; background:#3c1e2a; }
+:root[data-theme="dark"] .lesson-share { color:#9ab8ff!important; border-color:#4d6389!important; }
 :root[data-theme="dark"] .bg-white { background:var(--surface)!important; }
 :root[data-theme="dark"] input,:root[data-theme="dark"] textarea,:root[data-theme="dark"] select { color:var(--ink); background:var(--surface); border-color:var(--line); }
 .text-emerald-950,.text-emerald-900,.text-emerald-800,.text-emerald-700 { color:var(--blue)!important; }
